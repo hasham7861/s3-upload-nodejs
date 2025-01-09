@@ -5,8 +5,14 @@ import fs from 'fs/promises';
 import path from 'path';
 import fetch from 'node-fetch';  // Make sure to import node-fetch
 
-const s3Client = new S3Client({ region: "us-east-1" });
+// TODO: use this with the actual temporary credentials
+const s3Client = new S3Client({ region: "us-east-1" , credentials: {
+    accessKeyId: "<input-access-key>",
+    secretAccessKey: "<input-secret-access-key",
+    sessionToken: "<input-session-token>"
+}});
 
+// TODO: predefine names for actual script can be better defined
 const PREDEFINED_NAMES = [
     'front',
     'back',
@@ -21,7 +27,7 @@ async function generateUploadUrl(id) {
     }
     try {
         const params = {
-            Bucket: "test-collision-photo-bucket",
+            Bucket: "onegraph-collision-management-stage-us-east-1-bucket",
             Key: `${id}/{filename}.*`,
             ContentType: '*/*'
         };
@@ -72,14 +78,36 @@ const uploadExample = async (signedUrl, filePath) => {
         
         console.log(`Successfully uploaded ${baseName}${extension}`);
     } catch (error) {
-        console.error('Error:', error.message);
+        console.log("Error uploading file", error);
+        // console.error('Error:', error.message);
     }
 };
 
-// const { signedUrl } = await generateUploadUrl("123");
-// console.log(signedUrl);
+const { signedUrl } = await generateUploadUrl("123");
+console.log(signedUrl);
 
 
-// console.log("signed url upload")
-const exampleSignedUrl = ""; // update me as needed
+console.log("signed url uploading...")
+const exampleSignedUrl = signedUrl; // update me as needed
 uploadExample(exampleSignedUrl, "front.png")
+
+
+// this code sample below is for uploading directly through sdk code and it works with current permissions..
+// async function uploadFile(filePath) {
+//     const fileContent = await fs.readFile(filePath);
+//     const command = new PutObjectCommand({
+//         Bucket: "onegraph-collision-management-stage-us-east-1-bucket",
+//         Key: "test-upload.png",
+//         Body: fileContent,
+//         ContentType: 'image/png'
+//     });
+
+//     try {
+//         const response = await s3Client.send(command);
+//         console.log("Upload success:", response);
+//     } catch (err) {
+//         console.error("Upload error:", err);
+//     }
+// }
+
+// uploadFile("./front.png");
